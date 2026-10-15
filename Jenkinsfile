@@ -36,7 +36,7 @@ pipeline {
         }
 
         // ----------------------------------------------------------------
-        // 3. Test – ตรวจสอบว่า container start ได้และตอบกลับ HTTP 200
+        // 3. Test – ใช้ container IP แทน localhost (Jenkins รันใน container)
         // ----------------------------------------------------------------
         stage('Test') {
             steps {
@@ -44,12 +44,15 @@ pipeline {
                 sh """
                     docker run -d \
                         --name test-${BUILD_NUMBER} \
-                        -p 8099:80 \
                         ${IMAGE_NAME}:${BUILD_NUMBER}
 
                     sleep 3
 
-                    STATUS=\$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8099)
+                    # หา IP ของ test container โดยตรง
+                    CONTAINER_IP=\$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' test-${BUILD_NUMBER})
+                    echo "Container IP: \$CONTAINER_IP"
+
+                    STATUS=\$(curl -s -o /dev/null -w "%{http_code}" http://\$CONTAINER_IP:80)
                     echo "HTTP Status: \$STATUS"
 
                     docker stop test-${BUILD_NUMBER}
