@@ -11,7 +11,9 @@ services:
     restart: unless-stopped
 
   jenkins:
-    image: jenkins/jenkins:lts
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins       # custom image ที่มี Docker CLI ในตัว
     container_name: jenkins
     user: root
     ports:
@@ -19,7 +21,7 @@ services:
       - "50000:50000"
     volumes:
       - jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock   # ให้ Jenkins ใช้ Docker ของ host ได้
+      - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
 
 volumes:

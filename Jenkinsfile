@@ -5,7 +5,7 @@ pipeline {
         IMAGE_NAME   = 'php-test'
         CONTAINER    = 'php-test-8090'
         HOST_PORT    = '8090'
-        REGISTRY     = ''          // ถ้ามี registry เช่น 'registry.example.com' ใส่ที่นี่
+        REGISTRY     = ''
     }
 
     stages {
@@ -21,34 +21,7 @@ pipeline {
         }
 
         // ----------------------------------------------------------------
-        // 2. Install Docker CLI (ถ้ายังไม่มี)
-        // ----------------------------------------------------------------
-        stage('Setup') {
-            steps {
-                echo '⚙️ Checking Docker CLI...'
-                sh '''
-                    if ! command -v docker > /dev/null 2>&1; then
-                        echo "Docker not found — installing..."
-                        apt-get update -qq
-                        apt-get install -y docker.io curl
-                        echo "✅ Docker installed: $(docker --version)"
-                    else
-                        echo "✅ Docker already available: $(docker --version)"
-                    fi
-
-                    if ! command -v curl > /dev/null 2>&1; then
-                        apt-get install -y curl
-                    fi
-                    echo "✅ curl: $(curl --version | head -1)"
-
-                    # ตรวจสอบ socket
-                    ls -la /var/run/docker.sock || echo "⚠️ docker.sock not mounted"
-                '''
-            }
-        }
-
-        // ----------------------------------------------------------------
-        // 3. Build Docker image
+        // 2. Build Docker image
         // ----------------------------------------------------------------
         stage('Build') {
             steps {
@@ -63,7 +36,7 @@ pipeline {
         }
 
         // ----------------------------------------------------------------
-        // 4. Test – ตรวจสอบว่า container start ได้และตอบกลับ HTTP 200
+        // 3. Test – ตรวจสอบว่า container start ได้และตอบกลับ HTTP 200
         // ----------------------------------------------------------------
         stage('Test') {
             steps {
@@ -89,7 +62,7 @@ pipeline {
         }
 
         // ----------------------------------------------------------------
-        // 5. Deploy – หยุด container เก่า แล้วรันตัวใหม่บน port 8090
+        // 4. Deploy – หยุด container เก่า แล้วรันตัวใหม่บน port 8090
         // ----------------------------------------------------------------
         stage('Deploy') {
             steps {
@@ -110,7 +83,7 @@ pipeline {
         }
 
         // ----------------------------------------------------------------
-        // 6. Clean up – ลบ image เก่าที่ไม่ได้ใช้
+        // 5. Clean up – ลบ image เก่าที่ไม่ได้ใช้
         // ----------------------------------------------------------------
         stage('Cleanup') {
             steps {
@@ -120,9 +93,6 @@ pipeline {
         }
     }
 
-    // ----------------------------------------------------------------
-    // Post actions
-    // ----------------------------------------------------------------
     post {
         success {
             echo "🎉 Build #${BUILD_NUMBER} deployed successfully → http://<server-ip>:${HOST_PORT}"
